@@ -48,6 +48,27 @@ The absolute `deb_path` requires `--impure`:
 nixos-rebuild switch --impure
 ```
 
+## Protecting the .deb with the Nix store (recommended)
+
+Keeping the `.deb` in `~/private` works but is vulnerable to accidental deletion. A more durable approach is to add it to the Nix store with a GC root so it survives garbage collection:
+
+```bash
+store_path=$(nix store add-path /path/to/ninjarmm-ncplayer_amd64.deb --name ninjarmm-ncplayer_amd64.deb)
+sudo nix-store --add-root /nix/var/nix/gcroots/ninjaone -r "$store_path"
+echo $store_path
+```
+
+Then use the printed store path in your config instead of the `~/private` path:
+
+```nix
+programs.ninjaone = {
+  enable = true;
+  deb_path = /nix/store/<hash>-ninjarmm-ncplayer_amd64.deb;
+};
+```
+
+The file is now content-addressed in the store and the GC root prevents `nix-collect-garbage` or `nh clean` from removing it. Rebuilds still require `--impure` since the path is outside the flake tree.
+
 ## Options
 
 | Option | Type | Default | Description |

@@ -64,4 +64,9 @@ NinjaOne releases updates frequently. To update:
 2. Replace the file at `deb_path`
 3. Rebuild with `--impure`
 
-With `update_alias.enable = true`, the `update-ninja` alias copies the latest `.deb` from `~/Downloads` to `deb_path` automatically — then just rebuild.
+With `update_alias.enable = true`, the `update-ninja` alias copies the latest `.deb` from `~/Downloads` to `deb_path` automatically:
+
+```bash
+update-ninja
+nixos-rebuild switch --impure
+```

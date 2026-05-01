@@ -54,7 +54,10 @@ let
       dbus
       stdenv.cc.cc.lib
     ];
-    runScript = "${ncplayer-bin}/bin/ncplayer";
+    runScript = pkgs.writeShellScript "ncplayer-run" ''
+      export QT_QPA_PLATFORM=xcb
+      exec ${ncplayer-bin}/bin/ncplayer "$@"
+    '';
   };
 
   ncplayer-desktop = pkgs.writeTextFile {

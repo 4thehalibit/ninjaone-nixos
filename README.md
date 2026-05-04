@@ -36,7 +36,8 @@ mv ~/Downloads/ninjarmm-ncplayer-*_amd64.deb ~/private/ninjarmm-ncplayer_amd64.d
 programs.ninjaone = {
   enable = true;
   deb_path = /home/youruser/private/ninjarmm-ncplayer_amd64.deb;
-  update_alias.enable = true; # optional
+  update_alias.enable = true;        # optional: adds update-ninja alias
+  reset_browser_alias.enable = true; # optional: adds reset-ninja-browser command
 };
 ```
 
@@ -47,6 +48,12 @@ The absolute `deb_path` requires `--impure`:
 ```bash
 nixos-rebuild switch --impure
 ```
+
+### 6. Approve the protocol handler in your browser (first time only)
+
+Open your NinjaOne portal in Vivaldi (or any Chromium-based browser) and click **Connect** on any device. The browser will show a one-time prompt asking to open NinjaOne Remote Player — click **Open**.
+
+After approving, future connections launch `ncplayer` directly with no prompt.
 
 ## Protecting the .deb with the Nix store (recommended)
 
@@ -75,7 +82,8 @@ The file is now content-addressed in the store and the GC root prevents `nix-col
 |--------|------|---------|-------------|
 | `programs.ninjaone.enable` | bool | `false` | Install the NinjaOne remote access client |
 | `programs.ninjaone.deb_path` | path | `null` | Path to the `.deb` downloaded from your NinjaOne portal |
-| `programs.ninjaone.update_alias.enable` | bool | `false` | Add an `update-ninja` shell alias (see below) |
+| `programs.ninjaone.update_alias.enable` | bool | `false` | Add an `update-ninja` shell alias (see [Updating](#updating)) |
+| `programs.ninjaone.reset_browser_alias.enable` | bool | `false` | Add a `reset-ninja-browser` command (see [Troubleshooting](#troubleshooting)) |
 
 ## Updating
 
@@ -91,3 +99,26 @@ With `update_alias.enable = true`, the `update-ninja` alias copies the latest `.
 update-ninja
 nixos-rebuild switch --impure
 ```
+
+## Troubleshooting
+
+### ncplayer doesn't launch when clicking Connect
+
+Clicking Connect in the NinjaOne portal should launch `ncplayer` directly. If it stops working after a rebuild or browser restart, the browser's stored protocol handler permission has gone stale.
+
+**Fix:** Close the browser, then run:
+
+```bash
+reset-ninja-browser
+```
+
+Reopen the browser, click Connect, and approve the prompt once. The permission is reset and future connections will work automatically again.
+
+> Requires `reset_browser_alias.enable = true` in your config. The command checks Vivaldi, Chrome, and Chromium profiles automatically.
+
+### Expected log messages
+
+These messages appear in every `ncplayer` session and are harmless on NixOS:
+
+- `Failed to open file: "/etc/environment"` — NixOS does not create `/etc/environment`; ncplayer continues normally
+- `videoAdaptersInfo: Not implemented` / `Disable hardware renderer` — software rendering is used; remote sessions work correctly
